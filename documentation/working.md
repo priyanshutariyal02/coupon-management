@@ -434,8 +434,6 @@ export const processWebhookEvents = async () => {
 
 This ensures the event is **eventually delivered**, even if the first attempt fails.
 
----
-
 #### Situation 2 — Partner missed events after 200 OK
 
 - All webhook events are stored in our database.
@@ -443,8 +441,6 @@ This ensures the event is **eventually delivered**, even if the first attempt fa
 - We do this by setting the event status back to `PENDING`.
 
 This allows **easy recovery** without losing data.
-
----
 
 #### Situation 3 — Duplicate delivery due to retry
 
