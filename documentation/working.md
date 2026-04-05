@@ -306,6 +306,12 @@ model WebhookEvent {
 
 ### Endpoint
 
+```
+http://localhost:3000/order
+```
+
+### Route Handler
+
 ```ts
 export const createOrder = async (req: Request, res: Response) => {
   const { userId, offerId, couponCode, amount } = req.body;
