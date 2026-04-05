@@ -426,23 +426,33 @@ export const processWebhookEvents = async () => {
 
 ### System Handle Situations:
 
-#### Situation 1 - Webhook timeout
+#### Situation 1 — Webhook timeout
 
-- Event is already stored in WebhookEvent table.
-- Worker retries automatically using status, attempts, and nextRetryAt.
-- Ensures eventual delivery without blocking the main request.
+- The webhook event is already saved in the `WebhookEvent` table.
+- If the webhook call fails or times out, a worker will retry it later.
+- We track retries using `status`, `attempts`, and `nextRetryAt`.
 
-#### Situation 2 - Partner missed events after 200 OK
+This ensures the event is **eventually delivered**, even if the first attempt fails.
 
-- All events are stored persistently.
-- We can replay events by resetting status to PENDING.
-- This allows manual or automated recovery.
+---
 
-#### Situation 3 - Duplicate delivery due to retry
+#### Situation 2 — Partner missed events after 200 OK
 
-- Each event has a unique idempotencyKey.
-- This key is sent with every webhook request.
-- The partner system uses this key to ensure idempotent processing (ignore duplicates).
+- All webhook events are stored in our database.
+- If the partner misses some events, we can **re-send (replay)** them.
+- We do this by setting the event status back to `PENDING`.
+
+This allows **easy recovery** without losing data.
+
+---
+
+#### Situation 3 — Duplicate delivery due to retry
+
+- Each webhook event has a unique `idempotencyKey` (meaning a unique ID for a request).
+- This key is sent with every request to the partner.
+- If the same event is sent again, the partner recognizes the key and ignores duplicates.
+
+This ensures **no duplicate processing**, even with retries.
 
 ### Workflow Diagram
 
