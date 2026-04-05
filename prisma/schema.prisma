@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Part 1 i.e. Redirect & Click Tracking
+
+model Link {
+  id             String   @id
+  destinationUrl String
+  createdAt      DateTime @default(now())
+
+  clicks Click[]
+}
+
+model Click {
+  id        String   @id @default(uuid())
+  linkId    String
+  ref       String?
+  ip        String
+  createdAt DateTime @default(now())
+
+  link Link @relation(fields: [linkId], references: [id])
+}
+
+// Part 2 i.e. Coupon Claiming
+
+model Offer {
+  id             String   @id @default(uuid())
+  title          String
+  maxCoupons     Int
+  couponsClaimed Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  coupons Coupon[]
+  order   Order[]
+}
+
+model Coupon {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  userId    String
+  offerId   String
+  isUsed    Boolean   @default(false)
+  claimedAt DateTime  @default(now())
+  usedAt    DateTime?
+
+  offer  Offer   @relation(fields: [offerId], references: [id])
+  orders Order[]
+
+  @@unique([userId, offerId])
+  @@index([offerId])
+}
+
+
+model Order {
+  id        String   @id @default(uuid())
+  userId    String
+  offerId   String
+  couponId  String
+  amount    Decimal  @db.Decimal(10, 2)
+  ref       String?
+  createdAt DateTime @default(now())
+
+  offer  Offer  @relation(fields: [offerId], references: [id])
+  coupon Coupon @relation(fields: [couponId], references: [id])
+
+  webhookEvents WebhookEvent[]
+}
+
+model WebhookEvent {
+  id             String    @id @default(uuid())
+  orderId        String    @unique
+  eventType      String
+  idempotencyKey String    @unique
+  status         String
+  attempts       Int       @default(0)
+  nextRetryAt    DateTime?
+  lastError      String?
+  deliveredAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+}
