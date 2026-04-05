@@ -63,7 +63,7 @@ npx prisma migrate reset
 
 ---
 
-## ▶Run Project
+## Run Project
 
 ```bash
 npm run dev
